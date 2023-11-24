@@ -21,11 +21,11 @@ public struct ContinueButtonView: View {
         }) {
             Text(config.button.title)
                 .font(.callout)
-                .foregroundColor(.white)
+                .foregroundColor(config.button.buttonTextColor)
                 .frame(maxWidth: .infinity)
                 .padding()
         }
-        .background(config.accentColor)
+        .background(config.button.backgroundColor)
         .cornerRadius(10)
     }
 }

@@ -15,13 +15,14 @@ struct FeatureCell: View {
     var body: some View {
         HStack {
             Image(feature.iconName, bundle: .main)
-                .foregroundColor(.blue) // Подберите цвет под вашу палитру
+                .renderingMode(.template)
+                .foregroundColor(feature.iconTintColor)
                 .padding()
                 .frame(width: 62, height: 62)
             VStack(alignment: .leading, spacing: 2) {
                 Text(feature.description)
                     .font(.subheadline)
-                    .foregroundColor(.black)
+                    .foregroundColor(feature.descriptionColor)
             }
             .padding(.vertical)
             Spacer()

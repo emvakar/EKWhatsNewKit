@@ -9,7 +9,7 @@
 import UIKit
 import SwiftUI
 
-let cellBackground = UIColor(red: 0.945, green: 0.953, blue: 0.957, alpha: 1)
+let cellBackground = Color(red: 0.945, green: 0.953, blue: 0.957)
 
 let features: [WhatsNewConfig.Feature] = [
     WhatsNewConfig.Feature.init(iconName: "WN_nfc",
@@ -26,8 +26,6 @@ let features: [WhatsNewConfig.Feature] = [
                                 description: "Иногда баги бывают настоящими ниндзя, прячущимися в тени кода.\nНо мы выявили и исправили их.",
                                 backgroundColor: cellBackground)
 ]
-
-
 
 
 var attributedString: NSMutableAttributedString {
@@ -50,7 +48,7 @@ let demoConfig = WhatsNewConfig.init(version: WhatsNewConfig.Version(major: 1, m
                                      title: attributedString,
                                      features: features,
                                      button: WhatsNewConfig.ContinueButton(title: "Начать работу",
-                                                                           backgroundColor: UIColor(red: 0.4, green: 0.224, blue: 0.71, alpha: 1),
+                                                                           backgroundColor: Color(red: 0.4, green: 0.224, blue: 0.71),
                                                                            action: {
     print("Tapped!")
 }), backgroundColor: .white, accentColor: .gray)
@@ -65,14 +63,20 @@ public final class WhatsNewConfig {
     let backgroundColor: Color
     let accentColor: Color
 
-    public init(version: WhatsNewConfig.Version, title: NSAttributedString, features: [WhatsNewConfig.Feature], button: ContinueButton, backgroundColor: UIColor, accentColor: UIColor, defaults: UserDefaults = UserDefaults.standard) {
+    public init(version: WhatsNewConfig.Version,
+                title: NSAttributedString,
+                features: [WhatsNewConfig.Feature],
+                button: ContinueButton,
+                backgroundColor: Color,
+                accentColor: Color,
+                defaults: UserDefaults = UserDefaults.standard) {
         self.version = version
         self.title = title
         self.features = features
         self.button = button
         self.defaults = defaults
-        self.backgroundColor = Color(backgroundColor)
-        self.accentColor = Color(accentColor)
+        self.backgroundColor = backgroundColor
+        self.accentColor = backgroundColor
     }
 
     public func presentIfNeeded(on viewController: UIViewController, completion: (() -> Void)? = nil) {
@@ -139,24 +143,37 @@ public extension WhatsNewConfig {
         public let id: UUID = UUID()
         public let iconName: String
         public let description: String
+        public let iconTintColor: Color?
+        public let descriptionColor: Color
         public let backgroundColor: Color
 
-        public init(iconName: String, description: String, backgroundColor: UIColor) {
+        public init(iconName: String,
+                    description: String,
+                    iconTintColor: Color? = nil,
+                    descriptionColor: Color = .black,
+                    backgroundColor: Color) {
             self.iconName = iconName
             self.description = description
-            self.backgroundColor = Color(backgroundColor)
+            self.iconTintColor = iconTintColor
+            self.descriptionColor = descriptionColor
+            self.backgroundColor = backgroundColor
         }
     }
 
     struct ContinueButton {
 
         public let title: String
+        public let buttonTextColor: Color
         public let backgroundColor: Color
         public var action: (() -> Void)?
 
-        public init(title: String, backgroundColor: UIColor, action: (() -> Void)? = nil) {
+        public init(title: String,
+                    buttonTextColor: Color = Color.white,
+                    backgroundColor: Color,
+                    action: (() -> Void)? = nil) {
             self.title = title
-            self.backgroundColor = Color(backgroundColor)
+            self.buttonTextColor = buttonTextColor
+            self.backgroundColor = backgroundColor
             self.action = action
         }
     }
