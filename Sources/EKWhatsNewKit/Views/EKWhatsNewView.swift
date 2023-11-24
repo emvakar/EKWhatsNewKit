@@ -21,7 +21,7 @@ public struct EKWhatsNewView: View {
 
     public var body: some View {
         VStack {
-            AttributedTextLabel(attributedString: attributedString)
+            AttributedTextLabel(attributedString: config.title)
                 .padding()
                 .multilineTextAlignment(.center)
                 .scaledToFit()
