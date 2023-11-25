@@ -88,6 +88,27 @@ public final class WhatsNewConfig {
         }
         defaults.set(version.string, forKey: storageKey)
     }
+    
+    public func presentOnTopWithoutCovering(on viewController: UIViewController, completion: (() -> Void)? = nil) {
+        let storageKey = "WhatsNew.presented.version"
+        guard checkIfNeedPresent(on: storageKey) else { return }
+        let vc = UIHostingController(rootView: EKWhatsNewView(config: self))
+        
+        // Проверяем, есть ли текущий презентующий viewController
+        if let presentedViewController = viewController.presentedViewController {
+            // Если есть, добавляем наше новое презентационное окно к нему
+            presentedViewController.present(vc, animated: true) {
+                completion?()
+            }
+        } else {
+            // Если нет, просто добавляем к текущему viewController
+            viewController.present(vc, animated: true) {
+                completion?()
+            }
+        }
+        
+        defaults.set(version.string, forKey: storageKey)
+    }
 
     private func checkIfNeedPresent(on storageKey: String) -> Bool {
         guard let storedString = defaults.string(forKey: storageKey), let storedVersion = Version(from: storedString) else { return true }
