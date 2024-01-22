@@ -110,7 +110,7 @@ public final class WhatsNewConfig {
         defaults.set(version.string, forKey: storageKey)
     }
 
-    private func checkIfNeedPresent(on storageKey: String) -> Bool {
+    public func checkIfNeedPresent(on storageKey: String) -> Bool {
         guard let storedString = defaults.string(forKey: storageKey), let storedVersion = Version(from: storedString) else { return true }
         return storedVersion < version
     }
