@@ -14,17 +14,25 @@ let cellBackground = Color(red: 0.945, green: 0.953, blue: 0.957)
 let features: [WhatsNewConfig.Feature] = [
     WhatsNewConfig.Feature.init(iconName: "WN_nfc",
                                 description: "Так шикарно подписываем документы, что даже электроника завидует нашему стилю!",
-                                backgroundColor: cellBackground),
+                                backgroundColor: cellBackground,
+                                featureVersion: WhatsNewConfig.Version.init(major: 1, minor: 0, patch: 0),
+                                detailsButton: WhatsNewConfig.FeatureDatailsButton(backgroundColor: Color(red: 0.4, green: 0.224, blue: 0.71),
+                                                                                   action: {
+                                                                                        print("Tapped!")
+                                                                                   })),
 
     WhatsNewConfig.Feature.init(iconName: "WN_cup",
                                 description: "Теперь оно стойко, как кофе, который ты забыл выпить, а потом нашёл через полдня.",
-                                backgroundColor: cellBackground),
+                                backgroundColor: cellBackground,
+                                featureVersion: WhatsNewConfig.Version.init(major: 1, minor: 1, patch: 0)),
     WhatsNewConfig.Feature.init(iconName: "WN_phone-like",
                                 description: "После тестирования делаем 'магию' кода, чтобы он чувствовал себя увереннее!",
-                                backgroundColor: cellBackground),
+                                backgroundColor: cellBackground,
+                                featureVersion: WhatsNewConfig.Version.init(major: 1, minor: 2, patch: 1)),
     WhatsNewConfig.Feature.init(iconName: "WN_bugs",
                                 description: "Иногда баги бывают настоящими ниндзя, прячущимися в тени кода.\nНо мы выявили и исправили их.",
-                                backgroundColor: cellBackground)
+                                backgroundColor: cellBackground,
+                                featureVersion: WhatsNewConfig.Version.init(major: 2, minor: 0, patch: 0))
 ]
 
 
@@ -62,6 +70,7 @@ public final class WhatsNewConfig {
     let defaults: UserDefaults
     let backgroundColor: Color
     let accentColor: Color
+    var storedVersion: WhatsNewConfig.Version?
 
     public init(version: WhatsNewConfig.Version,
                 title: NSAttributedString,
@@ -77,21 +86,37 @@ public final class WhatsNewConfig {
         self.defaults = defaults
         self.backgroundColor = backgroundColor
         self.accentColor = backgroundColor
+
+        guard let storedString = defaults.string(forKey: WhatsNewConfig.storageKey),
+              let storedVersion = WhatsNewConfig.Version(from: storedString) else {
+            self.storedVersion = nil
+            return
+        }
+        self.storedVersion = storedVersion
+    }
+    
+    public static let storageKey = "WhatsNew.presented.version"
+
+    public var featuresFilteredForVersion: [WhatsNewConfig.Feature] {
+        guard checkIfNeedPresent() else { return [] }
+        guard let storedVersion = storedVersion else { return features }
+        return features.filter {
+            return $0.isActualForAllMinorVersions && version.minor == $0.featureVersion.minor && version.major == $0.featureVersion.major ||
+                version == $0.featureVersion && storedVersion < $0.featureVersion
+        }
     }
 
     public func presentIfNeeded(on viewController: UIViewController, completion: (() -> Void)? = nil) {
-        let storageKey = "WhatsNew.presented.version"
-        guard checkIfNeedPresent(on: storageKey) else { return }
+        guard checkIfNeedPresent() else { return }
         let vc = UIHostingController(rootView: EKWhatsNewView(config: self))
         viewController.present(vc, animated: true) {
             completion?()
         }
-        defaults.set(version.string, forKey: storageKey)
+        defaults.set(version.string, forKey: WhatsNewConfig.storageKey)
     }
-    
+
     public func presentOnTopWithoutCovering(on viewController: UIViewController, completion: (() -> Void)? = nil) {
-        let storageKey = "WhatsNew.presented.version"
-        guard checkIfNeedPresent(on: storageKey) else { return }
+        guard checkIfNeedPresent() else { return }
         let vc = UIHostingController(rootView: EKWhatsNewView(config: self))
         
         // Проверяем, есть ли текущий презентующий viewController
@@ -107,13 +132,14 @@ public final class WhatsNewConfig {
             }
         }
         
-        defaults.set(version.string, forKey: storageKey)
+        defaults.set(version.string, forKey: WhatsNewConfig.storageKey)
     }
 
-    public func checkIfNeedPresent(on storageKey: String) -> Bool {
-        guard let storedString = defaults.string(forKey: storageKey), let storedVersion = Version(from: storedString) else { return true }
+    public func checkIfNeedPresent() -> Bool {
+        guard let storedVersion = storedVersion else { return true }
         return storedVersion < version
     }
+
 }
 
 // MARK: - Public structs
@@ -167,17 +193,30 @@ public extension WhatsNewConfig {
         public let iconTintColor: Color?
         public let descriptionColor: Color
         public let backgroundColor: Color
+        public let featureVersion: WhatsNewConfig.Version
+        public let isActualForAllMinorVersions: Bool
+        public let detailsButton: FeatureDatailsButton?
+        public var hasDetailsButton: Bool {
+            detailsButton != nil
+        }
 
         public init(iconName: String,
                     description: String,
                     iconTintColor: Color? = nil,
                     descriptionColor: Color = .black,
-                    backgroundColor: Color) {
+                    backgroundColor: Color,
+                    featureVersion: Version,
+                    isActualForAllMinorVersions: Bool = false,
+                    detailsButton: FeatureDatailsButton? = nil
+        ) {
             self.iconName = iconName
             self.description = description
             self.iconTintColor = iconTintColor
             self.descriptionColor = descriptionColor
             self.backgroundColor = backgroundColor
+            self.featureVersion = featureVersion
+            self.isActualForAllMinorVersions = isActualForAllMinorVersions
+            self.detailsButton = detailsButton
         }
     }
 
@@ -189,6 +228,24 @@ public extension WhatsNewConfig {
         public var action: (() -> Void)?
 
         public init(title: String,
+                    buttonTextColor: Color = Color.white,
+                    backgroundColor: Color,
+                    action: (() -> Void)? = nil) {
+            self.title = title
+            self.buttonTextColor = buttonTextColor
+            self.backgroundColor = backgroundColor
+            self.action = action
+        }
+    }
+    
+    struct FeatureDatailsButton {
+
+        public let title: String
+        public let buttonTextColor: Color
+        public let backgroundColor: Color
+        public var action: (() -> Void)?
+
+        public init(title: String = "Подробнее",
                     buttonTextColor: Color = Color.white,
                     backgroundColor: Color,
                     action: (() -> Void)? = nil) {

@@ -28,7 +28,7 @@ public struct EKWhatsNewView: View {
 
             ScrollView {
                 LazyVStack(spacing: 10) {
-                    ForEach(config.features) { feature in
+                    ForEach(config.featuresFilteredForVersion) { feature in
                         FeatureCell(feature: feature)
                             .padding(.horizontal)
                     }
