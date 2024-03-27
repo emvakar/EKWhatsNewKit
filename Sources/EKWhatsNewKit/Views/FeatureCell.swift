@@ -23,6 +23,20 @@ struct FeatureCell: View {
                 Text(feature.description)
                     .font(.subheadline)
                     .foregroundColor(feature.descriptionColor)
+                if feature.hasDetailsButton {
+                    HStack {
+                        Spacer()
+                        Button(action: feature.detailsButton?.action ?? {}) {
+                            Text(feature.detailsButton?.title ?? "Подробнее")
+                                .padding(.vertical, 6)
+                                .frame(width: 140, height: 28)
+                                .foregroundColor(.white)
+                                .background(feature.detailsButton?.backgroundColor)
+                                .cornerRadius(10)
+                        }
+                    }
+                    .padding(.top, 10)
+                }
             }
             .padding(.vertical)
             Spacer()
